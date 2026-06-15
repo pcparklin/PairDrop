@@ -14,5 +14,6 @@ services:
       - TZ=Asia/Taipei # Time Zone
       - AUTO_ACCEPT_DEFAULT=false
       - BROADCAST_TIMEOUT_SECONDS=30
+      - ROOM_OWNER_ONLY_BROADCAST=true
     ports:
-      - "127.0.0.1:3000:3000" # Web UI. Change the port number before the last colon e.g. `127.0.0.1:9000:3000`
+      - "1111:3000" # Web UI. Change the port number before the last colon e.g. `127.0.0.1:9000:3000`

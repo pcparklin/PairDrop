@@ -10,6 +10,7 @@ export default class PairDropWsServer {
         this._conf = conf
 
         this._rooms = {}; // { roomId: peers[] }
+        this._roomMetadata = {}; // { roomId: { ownerId: String } }
 
         this._roomSecrets = {}; // { pairKey: roomSecret }
         this._keepAliveTimers = {};
@@ -339,6 +340,7 @@ export default class PairDropWsServer {
         // if room doesn't exist, create it
         if (!this._rooms[roomId]) {
             this._rooms[roomId] = {};
+            this._roomMetadata[roomId] = { ownerId: peer.id };
         }
 
         this._notifyPeers(peer, roomType, roomId);
@@ -376,8 +378,11 @@ export default class PairDropWsServer {
         // delete room if empty and abort
         if (!Object.keys(this._rooms[roomId]).length) {
             delete this._rooms[roomId];
+            delete this._roomMetadata[roomId];
             return;
         }
+
+
 
         // notify all other peers that remain in room that peer left
         for (const otherPeerId in this._rooms[roomId]) {
@@ -395,8 +400,23 @@ export default class PairDropWsServer {
         }
     }
 
+    _notifyOwnerChanged(roomId, roomType, newOwnerId) {
+        if (!this._rooms[roomId]) return;
+        for (const peerId in this._rooms[roomId]) {
+            const peer = this._rooms[roomId][peerId];
+            this._send(peer, {
+                type: 'owner-changed',
+                roomId: roomId,
+                roomType: roomType,
+                ownerId: newOwnerId
+            });
+        }
+    }
+
     _notifyPeers(peer, roomType, roomId) {
         if (!this._rooms[roomId]) return;
+
+        const ownerId = this._roomMetadata[roomId]?.ownerId;
 
         // notify all other peers that peer joined
         for (const otherPeerId in this._rooms[roomId]) {
@@ -407,7 +427,8 @@ export default class PairDropWsServer {
                 type: 'peer-joined',
                 peer: peer.getInfo(),
                 roomType: roomType,
-                roomId: roomId
+                roomId: roomId,
+                ownerId: ownerId
             };
 
             this._send(otherPeer, msg);
@@ -424,7 +445,8 @@ export default class PairDropWsServer {
             type: 'peers',
             peers: otherPeers,
             roomType: roomType,
-            roomId: roomId
+            roomId: roomId,
+            ownerId: ownerId
         };
 
         this._send(peer, msg);

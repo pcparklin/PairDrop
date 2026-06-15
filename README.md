@@ -75,6 +75,7 @@ Connect to others in complex network situations, or over the Internet.
 * **Hybrid Parallel/Queue Model**: Broadcast transfers run with a concurrency limit of 2 concurrent peers in parallel to prevent memory overload on mobile browsers (e.g. iOS Safari), while queueing the remaining peers.
 * **Handshake Timeout Protection**: A 15-second handshake timeout ensures that if a peer does not respond, the transfer request is automatically skipped and the next peer in the queue is processed.
 * **Global Auto-Accept Toggle Switch**: A toggle button is added to the header. When enabled, incoming file transfers from all devices are accepted automatically. When disabled, the user is prompted with an approval dialog as usual.
+* **Room Owner Control**: Restrict broadcast permissions to the room owner only. If configured, only the room owner (the first person who created/joined the room) can broadcast. If the owner leaves and rejoins, they retain their broadcast rights.
 
 ### Send Files or Text Directly From Share Menu, Context Menu or CLI
 * [Send files directly from context menu on Ubuntu (using Nautilus)](docs/how-to.md#send-multiple-files-and-directories-directly-from-context-menu-on-ubuntu-using-nautilus)

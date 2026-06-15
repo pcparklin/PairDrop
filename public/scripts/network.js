@@ -150,6 +150,9 @@ class ServerConnection {
             case 'signal':
                 Events.fire('signal', msg);
                 break;
+            case 'owner-changed':
+                Events.fire('owner-changed', msg);
+                break;
             case 'ping':
                 this.send({ type: 'pong' });
                 break;
@@ -221,6 +224,7 @@ class ServerConnection {
     }
 
     _onDisplayName(msg) {
+        this.peerId = msg.peerId;
         // Add peerId and peerIdHash to sessionStorage to authenticate as the same device on page reload
         sessionStorage.setItem('peer_id', msg.peerId);
         sessionStorage.setItem('peer_id_hash', msg.peerIdHash);
@@ -993,9 +997,11 @@ class PeersManager {
 
     constructor(serverConnection) {
         this.peers = {};
+        this._roomOwners = {}; // { roomId: ownerId }
         this._server = serverConnection;
         Events.on('signal', e => this._onMessage(e.detail));
         Events.on('peers', e => this._onPeers(e.detail));
+        Events.on('owner-changed', e => this._onOwnerChanged(e.detail));
         Events.on('files-selected', e => this._onFilesSelected(e.detail));
         Events.on('respond-to-files-transfer-request', e => this._onRespondToFileTransferRequest(e.detail))
         Events.on('send-text', e => this._onSendText(e.detail));
@@ -1007,6 +1013,8 @@ class PeersManager {
         // this device closes connection
         Events.on('room-secrets-deleted', e => this._onRoomSecretsDeleted(e.detail));
         Events.on('leave-public-room', e => this._onLeavePublicRoom(e.detail));
+        Events.on('public-room-created', e => this._onPublicRoomCreated(e.detail));
+        Events.on('public-room-left', _ => this._onPublicRoomLeft());
 
         // peer closes connection
         Events.on('secret-room-deleted', e => this._onSecretRoomDeleted(e.detail));
@@ -1077,13 +1085,60 @@ class PeersManager {
     }
 
     _onPeerJoined(message) {
+        if (message.roomType === 'ip') {
+            this._ipRoomId = message.roomId;
+        }
+        if (message.ownerId) {
+            this._updateRoomOwner(message.roomId, message.ownerId);
+        }
         this._createOrRefreshPeer(false, message.peer.id, message.roomType, message.roomId, message.peer.rtcSupported);
     }
 
     _onPeers(message) {
+        if (message.roomType === 'ip') {
+            this._ipRoomId = message.roomId;
+        } else if (message.roomType === 'public-id') {
+            this._currentPublicRoomId = message.roomId;
+        }
+        if (message.ownerId) {
+            this._updateRoomOwner(message.roomId, message.ownerId);
+        }
         message.peers.forEach(peer => {
             this._createOrRefreshPeer(true, peer.id, message.roomType, message.roomId, peer.rtcSupported);
-        })
+        });
+    }
+
+    _updateRoomOwner(roomId, ownerId) {
+        const oldOwnerId = this._roomOwners[roomId];
+        if (oldOwnerId !== ownerId) {
+            this._roomOwners[roomId] = ownerId;
+            Events.fire('room-ownership-changed', { roomId, ownerId });
+        }
+    }
+
+    _onOwnerChanged(message) {
+        this._updateRoomOwner(message.roomId, message.ownerId);
+    }
+
+    _onPublicRoomCreated(roomId) {
+        this._currentPublicRoomId = roomId;
+        Events.fire('room-ownership-changed');
+    }
+
+    _onPublicRoomLeft() {
+        this._currentPublicRoomId = null;
+        Events.fire('room-ownership-changed');
+    }
+
+    isRoomOwner() {
+        const ownerOnly = (this._server && this._server._config && this._server._config.roomOwnerOnlyBroadcast);
+        if (!ownerOnly) return true;
+
+        const activeRoomId = this._currentPublicRoomId || this._ipRoomId;
+        if (!activeRoomId) return true;
+        const ownerId = this._roomOwners[activeRoomId];
+        if (!ownerId) return true;
+        return ownerId === this._server.peerId;
     }
 
     _onWsRelay(message) {

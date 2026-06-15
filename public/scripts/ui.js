@@ -51,6 +51,7 @@ class PeersUI {
         Events.on('peer-display-name-changed', e => this._onPeerDisplayNameChanged(e));
 
         Events.on('ws-config', e => this._evaluateRtcSupport(e.detail))
+        Events.on('room-ownership-changed', _ => this._evaluateBroadcastPeer());
     }
 
     _evaluateRtcSupport(wsConfig) {
@@ -169,8 +170,9 @@ class PeersUI {
     _evaluateBroadcastPeer() {
         const activePeerElements = Array.from(this.$xPeers.querySelectorAll('x-peer:not([id="__all__"])'));
         const hasBroadcastElement = !!$('__all__');
+        const isOwner = window.pairDrop && window.pairDrop.peers && window.pairDrop.peers.isRoomOwner();
 
-        if (activePeerElements.length >= 2) {
+        if (activePeerElements.length >= 2 && isOwner) {
             if (!hasBroadcastElement) {
                 const broadcastPeer = {
                     id: '__all__',

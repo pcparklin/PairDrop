@@ -415,8 +415,12 @@ class Peer {
             return;
         }
 
+        const autoAcceptDefault = (this._server && this._server._config && this._server._config.autoAcceptDefault !== undefined)
+            ? this._server._config.autoAcceptDefault
+            : true;
+
         if (!this._isPaired()) {
-            this._setAutoAccept(true);
+            this._setAutoAccept(autoAcceptDefault);
             return;
         }
 
@@ -425,11 +429,11 @@ class Peer {
             .then(roomSecretEntry => {
                 const autoAccept = roomSecretEntry
                     ? roomSecretEntry.entry.auto_accept
-                    : true;
+                    : autoAcceptDefault;
                 this._setAutoAccept(autoAccept);
             })
             .catch(_ => {
-                this._setAutoAccept(true);
+                this._setAutoAccept(autoAcceptDefault);
             });
     }
 
@@ -1155,6 +1159,9 @@ class PeersManager {
                 }
             };
 
+            const timeoutSeconds = (this._server && this._server._config && this._server._config.broadcastTimeoutSeconds)
+                ? this._server._config.broadcastTimeoutSeconds
+                : 15;
             const timeoutId = setTimeout(() => {
                 console.warn(`Handshake timeout for peer ${peerId}`);
                 Events.fire('notify-user', Localization.getTranslation("notifications.handshake-timeout") || "Handshake timeout");
@@ -1162,7 +1169,7 @@ class PeersManager {
                 peer._filesRequested = null;
                 peer._requestPending = null;
                 self._onBroadcastPeerDone(peerId);
-            }, 15000);
+            }, timeoutSeconds * 1000);
 
             this._broadcastTimeouts.set(peerId, timeoutId);
 

@@ -50,7 +50,9 @@ export default class PairDropServer {
         app.get('/config', (req, res) => {
             res.send({
                 signalingServer: conf.signalingServer,
-                buttons: conf.buttons
+                buttons: conf.buttons,
+                autoAcceptDefault: conf.autoAcceptDefault,
+                broadcastTimeoutSeconds: conf.broadcastTimeoutSeconds
             });
         });
 

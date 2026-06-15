@@ -121,11 +121,14 @@ class PersistentStorage {
                 const db = e.target.result;
                 const transaction = db.transaction('room_secrets', 'readwrite');
                 const objectStore = transaction.objectStore('room_secrets');
+                const autoAcceptDefault = (window.pairDrop && window.pairDrop.server && window.pairDrop.server._config)
+                    ? window.pairDrop.server._config.autoAcceptDefault
+                    : true;
                 const objectStoreRequest = objectStore.add({
                     'secret': roomSecret,
                     'display_name': displayName,
                     'device_name': deviceName,
-                    'auto_accept': true
+                    'auto_accept': autoAcceptDefault
                 });
                 objectStoreRequest.onsuccess = e => {
                     console.log(`Request successful. RoomSecret added: ${e.target.result}`);

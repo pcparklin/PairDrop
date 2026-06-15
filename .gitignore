@@ -5,3 +5,4 @@ qrcode-svg/
 turnserver.conf
 rtc_config.json
 ssl/
+pairdrop_analysis.md

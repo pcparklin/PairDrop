@@ -57,6 +57,9 @@ conf.signalingServer = process.env.SIGNALING_SERVER && process.env.SIGNALING_SER
 
 conf.ipv6Localize = parseInt(process.env.IPV6_LOCALIZE) || false;
 
+conf.autoAcceptDefault = process.env.AUTO_ACCEPT_DEFAULT !== "false";
+conf.broadcastTimeoutSeconds = parseInt(process.env.BROADCAST_TIMEOUT_SECONDS) || 15;
+
 let rateLimit = false;
 if (process.argv.includes('--rate-limit') || process.env.RATE_LIMIT === "true") {
     rateLimit = 5;

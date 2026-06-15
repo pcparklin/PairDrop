@@ -1,6 +1,7 @@
 class PairDrop {
 
     constructor() {
+        window.pairDrop = this;
         this.$headerNotificationBtn = $('notification');
         this.$headerEditPairedDevicesBtn = $('edit-paired-devices');
         this.$footerPairedDevicesBadge = $$('.discovery-wrapper .badge-room-secret');

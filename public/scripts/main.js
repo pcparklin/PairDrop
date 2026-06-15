@@ -27,6 +27,7 @@ class PairDrop {
         this.persistentStorage = new PersistentStorage();
         this.localization = new Localization();
         this.themeUI = new ThemeUI();
+        this.autoAcceptToggleUI = new AutoAcceptToggleUI();
         this.backgroundCanvas = new BackgroundCanvas();
         this.headerUI = new HeaderUI();
         this.centerUI = new CenterUI();

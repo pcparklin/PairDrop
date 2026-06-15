@@ -13,7 +13,8 @@
         "join-public-room_title": "Join public room temporarily",
         "cancel-share-mode": "Cancel",
         "edit-share-mode": "Edit",
-        "expand_title": "Expand header button row"
+        "expand_title": "Expand header button row",
+        "auto-accept-toggle_title": "Toggle Auto-Accept"
     },
     "instructions": {
         "no-peers_data-drop-bg": "Release to select recipient",
@@ -162,7 +163,9 @@
         "message-transfer-completed": "Message transfer completed",
         "unfinished-transfers-warning": "There are unfinished transfers. Are you sure you want to close PairDrop?",
         "rate-limit-join-key": "Rate limit reached. Wait 10 seconds and try again.",
-        "selected-peer-left": "Selected peer left"
+        "selected-peer-left": "Selected peer left",
+        "auto-accept-enabled": "Auto-Accept Enabled",
+        "auto-accept-disabled": "Auto-Accept Disabled"
     },
     "document-titles": {
         "file-received": "File Received",
@@ -179,6 +182,8 @@
         "preparing": "Preparing…",
         "waiting": "Waiting…",
         "processing": "Processing…",
-        "transferring": "Transferring…"
+        "transferring": "Transferring…",
+        "broadcast-name": "Send to all",
+        "broadcast-device": "Broadcast"
     }
 }

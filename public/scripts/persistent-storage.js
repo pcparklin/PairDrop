@@ -125,7 +125,7 @@ class PersistentStorage {
                     'secret': roomSecret,
                     'display_name': displayName,
                     'device_name': deviceName,
-                    'auto_accept': false
+                    'auto_accept': true
                 });
                 objectStoreRequest.onsuccess = e => {
                     console.log(`Request successful. RoomSecret added: ${e.target.result}`);

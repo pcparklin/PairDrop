@@ -119,6 +119,8 @@ class PeersUI {
             active: this.shareMode.active,
             descriptor: this.shareMode.descriptor,
         });
+
+        this._evaluateBroadcastPeer();
     }
 
     _redrawPeerRoomTypes(peerId) {
@@ -161,6 +163,45 @@ class PeersUI {
             Events.fire('background-animation', {animate: true});
         }
 
+        this._evaluateBroadcastPeer();
+    }
+
+    _evaluateBroadcastPeer() {
+        const activePeerElements = Array.from(this.$xPeers.querySelectorAll('x-peer:not([id="__all__"])'));
+        const hasBroadcastElement = !!$('__all__');
+
+        if (activePeerElements.length >= 2) {
+            if (!hasBroadcastElement) {
+                const broadcastPeer = {
+                    id: '__all__',
+                    name: {
+                        displayName: Localization.getTranslation("peer-ui.broadcast-name") || "Send to all",
+                        deviceName: Localization.getTranslation("peer-ui.broadcast-device") || "Broadcast",
+                        device: { type: 'broadcast' }
+                    },
+                    _roomIds: { 'broadcast': 'all' },
+                    _isSameBrowser: () => false,
+                    rtcSupported: true
+                };
+
+                this.peers['__all__'] = broadcastPeer;
+                new PeerUI(broadcastPeer, "", {
+                    active: this.shareMode.active,
+                    descriptor: this.shareMode.descriptor,
+                });
+
+                const $broadcastNode = $('__all__');
+                if ($broadcastNode && this.$xPeers.firstChild !== $broadcastNode) {
+                    this.$xPeers.insertBefore($broadcastNode, this.$xPeers.firstChild);
+                }
+            }
+        } else {
+            if (hasBroadcastElement) {
+                const $broadcastNode = $('__all__');
+                if ($broadcastNode) $broadcastNode.remove();
+                delete this.peers['__all__'];
+            }
+        }
     }
 
     _onRoomTypeRemoved(peerId, roomType) {
@@ -411,8 +452,9 @@ class PeerUI {
         this.$xPeers = $$('x-peers');
 
         this._peer = peer;
-        this._connectionHash =
-            `${connectionHash.substring(0, 4)} ${connectionHash.substring(4, 8)} ${connectionHash.substring(8, 12)} ${connectionHash.substring(12, 16)}`;
+        this._connectionHash = connectionHash
+            ? `${connectionHash.substring(0, 4)} ${connectionHash.substring(4, 8)} ${connectionHash.substring(8, 12)} ${connectionHash.substring(12, 16)}`
+            : "";
 
         // This is needed if the ShareMode is started BEFORE the PeerUI is drawn.
         this._shareMode = shareMode;
@@ -467,6 +509,11 @@ class PeerUI {
     }
 
     addTypesToClassList() {
+        if (this._peer.id === '__all__') {
+            this.$el.classList.add('type-broadcast');
+            return;
+        }
+
         if (this._peer._isSameBrowser()) {
             this.$el.classList.add(`type-same-browser`);
         }
@@ -580,6 +627,9 @@ class PeerUI {
     }
 
     _badgeClassName() {
+        if (this._peer.id === '__all__') {
+            return 'badge-room-broadcast';
+        }
         const roomTypes = Object.keys(this._peer._roomIds);
         return roomTypes.includes('secret')
             ? 'badge-room-secret'
@@ -589,6 +639,9 @@ class PeerUI {
     }
 
     _icon() {
+        if (this._peer.id === '__all__') {
+            return '#wifi-tethering';
+        }
         const device = this._peer.name.device || this._peer.name;
         if (device.type === 'mobile') {
             return '#phone-iphone';

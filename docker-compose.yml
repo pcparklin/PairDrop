@@ -1,7 +1,7 @@
 version: "3"
 services:
   pairdrop:
-    image: "lscr.io/linuxserver/pairdrop:latest"
+    build: .
     container_name: pairdrop
     restart: unless-stopped
     environment:

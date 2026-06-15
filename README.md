@@ -70,6 +70,12 @@ Connect to others in complex network situations, or over the Internet.
 * Download, share or save to gallery via the "Share" menu on Android and iOS.
 * Multiple files are transferred at once with an overall progress indicator.
 
+### One-to-Many Broadcast Sharing
+* **Send to All**: A virtual broadcast peer card (`Send to all`) is displayed when there are 2 or more other peers connected. Selecting this card allows sending files or text to all connected peers simultaneously.
+* **Hybrid Parallel/Queue Model**: Broadcast transfers run with a concurrency limit of 2 concurrent peers in parallel to prevent memory overload on mobile browsers (e.g. iOS Safari), while queueing the remaining peers.
+* **Handshake Timeout Protection**: A 15-second handshake timeout ensures that if a peer does not respond, the transfer request is automatically skipped and the next peer in the queue is processed.
+* **Global Auto-Accept Toggle Switch**: A toggle button is added to the header. When enabled, incoming file transfers from all devices are accepted automatically. When disabled, the user is prompted with an approval dialog as usual.
+
 ### Send Files or Text Directly From Share Menu, Context Menu or CLI
 * [Send files directly from context menu on Ubuntu (using Nautilus)](docs/how-to.md#send-multiple-files-and-directories-directly-from-context-menu-on-ubuntu-using-nautilus)
 * [Send files directly from the context menu on Windows](docs/how-to.md#send-files-directly-from-context-menu-on-windows)

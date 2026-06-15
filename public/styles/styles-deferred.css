@@ -145,6 +145,10 @@ x-peer:not(.type-ip):not(.type-secret).type-public-id .icon-wrapper {
     --accent-color: var(--public-room-color);
 }
 
+x-peer.type-broadcast .icon-wrapper {
+    --accent-color: var(--broadcast-color);
+}
+
 .highlight-wrapper {
     align-self: center;
     align-items: center;

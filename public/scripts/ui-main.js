@@ -111,6 +111,40 @@ class ThemeUI {
     }
 }
 
+class AutoAcceptToggleUI {
+    constructor() {
+        this.$btn = $('auto-accept-toggle');
+        if (!this.$btn) return;
+
+        const saved = localStorage.getItem('pairdrop_global_auto_accept');
+        const state = saved !== null ? saved === 'true' : true;
+        this._setState(state);
+
+        this.$btn.addEventListener('click', () => {
+            const newState = !this.getState();
+            this._setState(newState);
+            Events.fire('global-auto-accept-changed', { enabled: newState });
+            Events.fire('notify-user', newState 
+                ? Localization.getTranslation("notifications.auto-accept-enabled")
+                : Localization.getTranslation("notifications.auto-accept-disabled")
+            );
+        });
+    }
+
+    getState() {
+        return localStorage.getItem('pairdrop_global_auto_accept') === 'true';
+    }
+
+    _setState(enabled) {
+        localStorage.setItem('pairdrop_global_auto_accept', enabled ? 'true' : 'false');
+        if (enabled) {
+            this.$btn.setAttribute('selected', '');
+        } else {
+            this.$btn.removeAttribute('selected');
+        }
+    }
+}
+
 class HeaderUI {
 
     constructor() {

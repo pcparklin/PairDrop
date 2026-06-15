@@ -521,6 +521,10 @@ footer .logo {
     --badge-color: var(--public-room-color);
 }
 
+.badge-room-broadcast {
+    --badge-color: var(--broadcast-color);
+}
+
 .known-as-wrapper {
     font-size: 16px; /* prevents auto-zoom on edit */
 }
@@ -933,6 +937,7 @@ body {
     --primary-color: #4285f4;
     --paired-device-color: #00a69c;
     --public-room-color: #ed9d01;
+    --broadcast-color: #9c27b0;
     --accent-color: var(--primary-color);
     --ws-peer-color: #ff6b6b;
     --btn-disabled-color: #5B5B66;
@@ -1113,5 +1118,10 @@ See note here: https://developer.mozilla.org/en-US/docs/Web/CSS/user-select */
 [contenteditable] {
     -webkit-user-select: text;
     user-select: text;
+}
+
+#auto-accept-toggle[selected] {
+    color: #4caf50;
+    opacity: 1 !important;
 }
 

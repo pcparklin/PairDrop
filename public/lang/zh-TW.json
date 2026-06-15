@@ -13,7 +13,8 @@
         "pair-device_title": "永久配對你的裝置",
         "edit-paired-devices_title": "編輯已配對的裝置",
         "join-public-room_title": "暫時加入公共房間",
-        "theme-light_title": "總是使用淺色主題"
+        "theme-light_title": "總是使用淺色主題",
+        "auto-accept-toggle_title": "自動接收開關"
     },
     "instructions": {
         "no-peers_data-drop-bg": "釋放以選擇接收者",
@@ -162,7 +163,9 @@
         "pairing-tabs-error": "將兩個網頁瀏覽器分頁進行配對是不可能的",
         "clipboard-content-incorrect": "剪貼簿內容不正確",
         "click-to-download": "點擊以下載",
-        "request-title": "{{name}} 想要發送 {{count}} 個 {{descriptor}}"
+        "request-title": "{{name}} 想要發送 {{count}} 個 {{descriptor}}",
+        "auto-accept-enabled": "已開啟自動接收",
+        "auto-accept-disabled": "已關閉自動接收"
     },
     "document-titles": {
         "file-received": "檔案已收到",
@@ -179,6 +182,8 @@
         "waiting": "正在等待中…",
         "processing": "正在處理中…",
         "transferring": "正在傳輸中…",
-        "connection-hash": "若要驗證端對端加密的安全性，請在兩台裝置上比較此安全編號"
+        "connection-hash": "若要驗證端對端加密的安全性，請在兩台裝置上比較此安全編號",
+        "broadcast-name": "發送給所有人",
+        "broadcast-device": "廣播傳輸"
     }
 }

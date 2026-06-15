@@ -409,8 +409,14 @@ class Peer {
     }
 
     _evaluateAutoAccept() {
-        if (!this._isPaired()) {
+        const globalAutoAccept = localStorage.getItem('pairdrop_global_auto_accept') !== 'false';
+        if (!globalAutoAccept) {
             this._setAutoAccept(false);
+            return;
+        }
+
+        if (!this._isPaired()) {
+            this._setAutoAccept(true);
             return;
         }
 
@@ -419,11 +425,11 @@ class Peer {
             .then(roomSecretEntry => {
                 const autoAccept = roomSecretEntry
                     ? roomSecretEntry.entry.auto_accept
-                    : false;
+                    : true;
                 this._setAutoAccept(autoAccept);
             })
             .catch(_ => {
-                this._setAutoAccept(false);
+                this._setAutoAccept(true);
             });
     }
 
@@ -1009,6 +1015,13 @@ class PeersManager {
         Events.on('ws-disconnected', _ => this._onWsDisconnected());
         Events.on('ws-relay', e => this._onWsRelay(e.detail));
         Events.on('ws-config', e => this._onWsConfig(e.detail));
+        Events.on('global-auto-accept-changed', e => this._onGlobalAutoAcceptChanged(e.detail.enabled));
+
+        this._broadcastFiles = null;
+        this._broadcastQueue = [];
+        this._activeBroadcasts = new Set();
+        this._broadcastTimeouts = new Map();
+        this._originalPeerMethods = new Map();
     }
 
     _onWsConfig(wsConfig) {
@@ -1083,11 +1096,103 @@ class PeersManager {
 
     async _onFilesSelected(message) {
         let files = mime.addMissingMimeTypesToFiles([...message.files]);
-        await this.peers[message.to].requestFileTransfer(files);
+        if (message.to === '__all__') {
+            const peerIds = Object.keys(this.peers).filter(id => id !== '__all__');
+            if (peerIds.length === 0) return;
+
+            this._broadcastFiles = files;
+            this._broadcastQueue = [...peerIds];
+            this._activeBroadcasts.clear();
+            this._processBroadcastQueue();
+        } else {
+            await this.peers[message.to].requestFileTransfer(files);
+        }
     }
 
     _onSendText(message) {
-        this.peers[message.to].sendText(message.text);
+        if (message.to === '__all__') {
+            Object.keys(this.peers).forEach(peerId => {
+                if (peerId !== '__all__') {
+                    this.peers[peerId].sendText(message.text);
+                }
+            });
+        } else {
+            this.peers[message.to].sendText(message.text);
+        }
+    }
+
+    _processBroadcastQueue() {
+        const MAX_CONCURRENT_BROADCASTS = 2;
+        while (this._activeBroadcasts.size < MAX_CONCURRENT_BROADCASTS && this._broadcastQueue.length > 0) {
+            const peerId = this._broadcastQueue.shift();
+            const peer = this.peers[peerId];
+            if (!peer) continue;
+
+            this._activeBroadcasts.add(peerId);
+
+            const originalOnResponded = peer._onFileTransferRequestResponded;
+            const originalOnCompleted = peer._onFileTransferCompleted;
+
+            this._originalPeerMethods.set(peerId, {
+                _onFileTransferRequestResponded: originalOnResponded,
+                _onFileTransferCompleted: originalOnCompleted
+            });
+
+            const self = this;
+
+            peer._onFileTransferRequestResponded = function(msg) {
+                self._clearBroadcastTimeout(peerId);
+                originalOnResponded.call(this, msg);
+                if (!msg.accepted) {
+                    self._onBroadcastPeerDone(peerId);
+                }
+            };
+
+            peer._onFileTransferCompleted = function() {
+                originalOnCompleted.call(this);
+                if (!this._filesQueue.length) {
+                    self._onBroadcastPeerDone(peerId);
+                }
+            };
+
+            const timeoutId = setTimeout(() => {
+                console.warn(`Handshake timeout for peer ${peerId}`);
+                Events.fire('notify-user', Localization.getTranslation("notifications.handshake-timeout") || "Handshake timeout");
+                Events.fire('set-progress', {peerId: peerId, progress: 1, status: 'wait'});
+                peer._filesRequested = null;
+                peer._requestPending = null;
+                self._onBroadcastPeerDone(peerId);
+            }, 15000);
+
+            this._broadcastTimeouts.set(peerId, timeoutId);
+
+            peer.requestFileTransfer([...this._broadcastFiles]).catch(err => {
+                console.error(`Error requesting file transfer to ${peerId}:`, err);
+                self._onBroadcastPeerDone(peerId);
+            });
+        }
+    }
+
+    _clearBroadcastTimeout(peerId) {
+        if (this._broadcastTimeouts.has(peerId)) {
+            clearTimeout(this._broadcastTimeouts.get(peerId));
+            this._broadcastTimeouts.delete(peerId);
+        }
+    }
+
+    _onBroadcastPeerDone(peerId) {
+        this._clearBroadcastTimeout(peerId);
+
+        const original = this._originalPeerMethods.get(peerId);
+        const peer = this.peers[peerId];
+        if (peer && original) {
+            peer._onFileTransferRequestResponded = original._onFileTransferRequestResponded;
+            peer._onFileTransferCompleted = original._onFileTransferCompleted;
+        }
+        this._originalPeerMethods.delete(peerId);
+
+        this._activeBroadcasts.delete(peerId);
+        this._processBroadcastQueue();
     }
 
     _onPeerLeft(message) {
@@ -1134,11 +1239,22 @@ class PeersManager {
     }
 
     _onPeerDisconnected(peerId) {
+        const queueIndex = this._broadcastQueue.indexOf(peerId);
+        if (queueIndex !== -1) {
+            this._broadcastQueue.splice(queueIndex, 1);
+        }
+
+        if (this._activeBroadcasts.has(peerId)) {
+            this._onBroadcastPeerDone(peerId);
+        }
+
         const peer = this.peers[peerId];
         delete this.peers[peerId];
-        if (!peer || !peer._conn) return;
-        if (peer._channel) peer._channel.onclose = null;
-        peer._conn.close();
+        if (!peer) return;
+        if (peer._conn) {
+            if (peer._channel) peer._channel.onclose = null;
+            peer._conn.close();
+        }
         peer._busy = false;
         peer._roomIds = {};
     }
@@ -1214,6 +1330,14 @@ class PeersManager {
         if (!peerId) return;
 
         this.peers[peerId]._setAutoAccept(autoAccept);
+    }
+
+    _onGlobalAutoAcceptChanged(enabled) {
+        Object.keys(this.peers).forEach(peerId => {
+            if (peerId !== '__all__') {
+                this.peers[peerId]._evaluateAutoAccept();
+            }
+        });
     }
 
     _getPeerIdsFromRoomId(roomId) {

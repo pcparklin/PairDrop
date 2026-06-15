@@ -50,8 +50,13 @@ class PeersUI {
 
         Events.on('peer-display-name-changed', e => this._onPeerDisplayNameChanged(e));
 
-        Events.on('ws-config', e => this._evaluateRtcSupport(e.detail))
-        Events.on('room-ownership-changed', _ => this._evaluateBroadcastPeer());
+        Events.on('room-ownership-changed', _ => {
+            this._evaluateBroadcastPeer();
+            const peerElements = Array.from(this.$xPeers.querySelectorAll('x-peer'));
+            peerElements.forEach(el => {
+                if (el.ui) el.ui._evaluateShareMode();
+            });
+        });
     }
 
     _evaluateRtcSupport(wsConfig) {
@@ -550,9 +555,21 @@ class PeerUI {
         this._bindListeners();
     }
 
+    _isTransmissionAllowed() {
+        const config = window.pairDrop && window.pairDrop.server && window.pairDrop.server._config;
+        if (config && config.ownerOnlyTransmission) {
+            return window.pairDrop.peers && window.pairDrop.peers.isRoomOwner();
+        }
+        return true;
+    }
+
     _evaluateShareMode() {
         let title;
-        if (!this._shareMode.active) {
+        if (!this._isTransmissionAllowed()) {
+            title = Localization.getTranslation("peer-ui.owner-only-transmission-warning") || "Only the room owner can send files or messages";
+            this.$input.setAttribute('disabled', true);
+        }
+        else if (!this._shareMode.active) {
             title = Localization.getTranslation("peer-ui.click-to-send");
             this.$input.removeAttribute('disabled');
         }
@@ -655,6 +672,7 @@ class PeerUI {
     }
 
     _onFilesSelected(e) {
+        if (!this._isTransmissionAllowed()) return;
         const $input = e.target;
         const files = $input.files;
 
@@ -700,6 +718,7 @@ class PeerUI {
     }
 
     _onDrop(e) {
+        if (!this._isTransmissionAllowed()) return;
         if (this._shareMode.active || Dialog.anyDialogShown()) return;
 
         e.preventDefault();
@@ -725,6 +744,7 @@ class PeerUI {
     }
 
     _onDragOver() {
+        if (!this._isTransmissionAllowed()) return;
         this.$el.setAttribute('drop', true);
         this.$xInstructions.setAttribute('drop-peer', true);
     }
@@ -735,6 +755,7 @@ class PeerUI {
     }
 
     _onRightClick(e) {
+        if (!this._isTransmissionAllowed()) return;
         e.preventDefault();
         Events.fire('text-recipient', {
             peerId: this._peer.id,
@@ -743,11 +764,13 @@ class PeerUI {
     }
 
     _onTouchStart(e) {
+        if (!this._isTransmissionAllowed()) return;
         this._touchStart = Date.now();
         this._touchTimer = setTimeout(() => this._onTouchEnd(e), 610);
     }
 
     _onTouchEnd(e) {
+        if (!this._isTransmissionAllowed()) return;
         if (Date.now() - this._touchStart < 500) {
             clearTimeout(this._touchTimer);
         }

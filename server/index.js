@@ -59,7 +59,7 @@ conf.ipv6Localize = parseInt(process.env.IPV6_LOCALIZE) || false;
 
 conf.autoAcceptDefault = process.env.AUTO_ACCEPT_DEFAULT !== "false";
 conf.broadcastTimeoutSeconds = parseInt(process.env.BROADCAST_TIMEOUT_SECONDS) || 15;
-conf.roomOwnerOnlyBroadcast = process.env.ROOM_OWNER_ONLY_BROADCAST === "true";
+conf.ownerOnlyTransmission = process.env.OWNER_ONLY_TRANSMISSION === "true";
 
 let rateLimit = false;
 if (process.argv.includes('--rate-limit') || process.env.RATE_LIMIT === "true") {

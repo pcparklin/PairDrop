@@ -1131,9 +1131,6 @@ class PeersManager {
     }
 
     isRoomOwner() {
-        const ownerOnly = (this._server && this._server._config && this._server._config.roomOwnerOnlyBroadcast);
-        if (!ownerOnly) return true;
-
         const activeRoomId = this._currentPublicRoomId || this._ipRoomId;
         if (!activeRoomId) return true;
         const ownerId = this._roomOwners[activeRoomId];

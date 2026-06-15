@@ -367,6 +367,42 @@ WS_FALLBACK=true
 
 <br>
 
+### Default Auto-Accept for Paired Devices
+
+```bash
+AUTO_ACCEPT_DEFAULT=true
+```
+
+> Default: `true`
+>
+> Sets the default value of the auto-accept feature for newly paired devices.
+
+<br>
+
+### Broadcast Timeout
+
+```bash
+BROADCAST_TIMEOUT_SECONDS=15
+```
+
+> Default: `15`
+>
+> Specifies the timeout in seconds for handshake requests during broadcast transfers before skipping to the next peer in queue.
+
+<br>
+
+### Restrictive Transmission (Owner Only)
+
+```bash
+OWNER_ONLY_TRANSMISSION=false
+```
+
+> Default: `false`
+>
+> Set to `true` to restrict file transfers and message sending to only the Room Owner.
+
+<br>
+
 ### Specify STUN/TURN Servers
 
 ```bash

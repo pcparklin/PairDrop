@@ -184,6 +184,7 @@
         "transferring": "正在傳輸中…",
         "connection-hash": "若要驗證端對端加密的安全性，請在兩台裝置上比較此安全編號",
         "broadcast-name": "發送給所有人",
-        "broadcast-device": "廣播傳輸"
+        "broadcast-device": "廣播傳輸",
+        "owner-only-transmission-warning": "僅限房間擁有者才能傳送檔案或訊息"
     }
 }

@@ -184,6 +184,7 @@
         "processing": "Processing…",
         "transferring": "Transferring…",
         "broadcast-name": "Send to all",
-        "broadcast-device": "Broadcast"
+        "broadcast-device": "Broadcast",
+        "owner-only-transmission-warning": "Only the room owner can send files or messages"
     }
 }

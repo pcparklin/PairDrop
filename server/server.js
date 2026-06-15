@@ -53,7 +53,7 @@ export default class PairDropServer {
                 buttons: conf.buttons,
                 autoAcceptDefault: conf.autoAcceptDefault,
                 broadcastTimeoutSeconds: conf.broadcastTimeoutSeconds,
-                roomOwnerOnlyBroadcast: conf.roomOwnerOnlyBroadcast
+                ownerOnlyTransmission: conf.ownerOnlyTransmission
             });
         });
 
